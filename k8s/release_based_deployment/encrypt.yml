@@ -1,0 +1,32 @@
+requires:
+  fbl: '>=1.12.0 <2.0.0'
+  plugins:
+    '@fbl-plugins/crypto': '>=1.1.1'
+
+pipeline:
+  '--':
+    - '@': prepare.yml
+
+    - $title: try to delete "encrypted" folder first
+      try:
+        action:
+          '--':
+            - rm: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/encrypted/
+
+    - $title: find all files in "decrypted" folder
+      find:
+        include:
+          - releases/<%- ctx.release %>/vault/<%- ctx.environment %>/decrypted/**/*
+        result:
+          baseDir: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/decrypted
+          assignTo: '$.ctx.files'
+
+    - $title: encrypted each file individually
+      each:
+        of: $ref:ctx.files
+        action:
+          $title: encrypt "<%- iteration.value %>"
+          encrypt:
+            password: $ref:secrets.password
+            file: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/decrypted/<%- iteration.value %>
+            destination: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/encrypted/<%- iteration.value %>

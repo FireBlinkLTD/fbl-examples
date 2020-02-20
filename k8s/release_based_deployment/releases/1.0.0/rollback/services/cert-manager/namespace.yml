@@ -1,0 +1,9 @@
+pipeline:
+  try:
+    action:
+      $title: Remove namespace...
+      kubectl.delete:
+        resources:
+          - Namespace
+        names:
+          - $ref:ctx.namespace

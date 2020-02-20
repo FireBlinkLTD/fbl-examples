@@ -1,0 +1,10 @@
+pipeline:
+  try:
+    action:
+      $title: Remove ClusterIssuer...
+      kubectl.delete:
+        resources:
+          - ClusterIssuer
+        names:
+          - letsencrypt-prod
+        namespace: $ref:ctx.namespace

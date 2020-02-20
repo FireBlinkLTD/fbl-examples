@@ -1,0 +1,6 @@
+pipeline:
+  '--':
+    - '@': namespace.yml
+    - '@': crd.yml
+    - '@': helm.yml
+    - '@': cluster-issuer.yml

@@ -1,0 +1,7 @@
+pipeline:
+  try:
+    action:
+      $title: Remove CRDs...
+      kubectl.delete:
+        paths:
+          - https://raw.githubusercontent.com/jetstack/cert-manager/<%- ctx['cert-manager'].version %>/deploy/manifests/00-crds.yaml

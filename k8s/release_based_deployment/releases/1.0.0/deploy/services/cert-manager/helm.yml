@@ -1,0 +1,13 @@
+pipeline:
+  '--':
+    - $title: add "jetstack" helm repo
+      helm.repo.add:
+        name: jetstack
+        url: https://charts.jetstack.io
+
+    - $title: install helm chart
+      helm.install:
+        chart: jetstack/cert-manager
+        release: cert-manager
+        version: $ref:ctx.cert-manager.version #reference config "cert-manager -> version" value
+        namespace: $ref:ctx.namespace #reference config "namespace" value

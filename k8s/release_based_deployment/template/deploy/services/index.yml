@@ -1,0 +1,3 @@
+pipeline:
+  '--':
+    - void # TODO: replate me

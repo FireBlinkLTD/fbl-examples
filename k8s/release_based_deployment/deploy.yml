@@ -1,0 +1,63 @@
+requires:
+  fbl: '>=1.12.0 <2.0.0'
+  plugins:
+    '@fbl-plugins/k8s-helm': '>=1.1.1'
+    '@fbl-plugins/k8s-kubectl': '>=1.2.3'
+
+pipeline:
+  '--':
+    - '@': prepare.yml
+
+    - $title: try to get "fbl-deployment" ConfigMap
+      try:
+        action:
+          kubectl.get.one:
+            resource: ConfigMap
+            name: fbl-deployment
+            assignResourceTo: $.ctx.fbl.deployment
+
+        catch:
+          $title: "fbl-deployment" ConfigMap not found, assigning default value
+          ctx:
+            $.fbl.deployment:
+              inline:
+                kind: ConfigMap
+                apiVersion: v1
+                metadata:
+                  name: fbl-deployment
+                data: {}
+
+    - $title: check if release was already deployed
+      if:
+        value: <%- ctx.fbl.deployment.data[ctx.cli.release] === 'success' || ctx.fbl.deployment.data[ctx.cli.release] === 'failure' %>
+        is:
+          true:
+            error: |-
+              Could not deploy <%- ctx.cli.release %> release.
+              It look like there was previous attempt to deploy it that completed with status "<%- ctx.fbl.deployment.data[ctx.cli.release] %>".
+              Please rollback the deployment and try again.
+
+    - $title: try to make the deployment
+      try:
+        action:
+          '--':
+            - '@': releases/<%- ctx.cli.release %>/deploy
+            - $title: mark deployment as successfully completed
+              fn: |-
+                ctx.fbl.deployment.data[ctx.cli.release] = 'success'
+        catch:
+          $title: mark deployment as failed
+          fn: |-
+            ctx.fbl.deployment.data[ctx.cli.release] = 'failure'
+
+    - $title: update "fbl-deployment" ConfigMap
+      kubectl.apply:
+        inline:
+          - $ref:ctx.fbl.deployment
+
+    - $title: check if deployment failed
+      if:
+        value: <%- ctx.fbl.deployment.data[ctx.cli.release] === 'failure' %>
+        is:
+          true:
+            error: Release <%- ctx.cli.release %> failed to deploy

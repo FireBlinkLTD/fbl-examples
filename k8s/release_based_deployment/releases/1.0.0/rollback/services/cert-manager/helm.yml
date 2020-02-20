@@ -1,0 +1,6 @@
+pipeline:
+  try:
+    action:
+      $title: Remove cert-manager helm release...
+      helm.delete:
+        release: 'cert-manager'

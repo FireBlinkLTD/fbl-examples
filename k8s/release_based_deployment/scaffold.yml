@@ -1,0 +1,22 @@
+requires:
+  fbl: '>=1.12.0 <2.0.0'
+
+pipeline:
+  '--':
+    - $title: prompt user for a version
+      prompt:
+        message: 'Enter the release version name to create (e.g. 1.0.0):'
+        assignResponseTo: $.ctx.versionName
+
+    - $title: make release folder
+      mkdir: releases/<%- ctx.versionName %>
+
+    - $title: copy template to the release folder
+      cp:
+        from: template/
+        to: releases/<%- ctx.versionName %>
+
+    - $title: create "decrypted" folder in each environment's vault folder
+      '--':
+        - mkdir: releases/<%- ctx.versionName %>/vault/uat/decrypted
+        - mkdir: releases/<%- ctx.versionName %>/vault/prod/decrypted

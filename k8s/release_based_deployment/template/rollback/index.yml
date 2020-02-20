@@ -1,0 +1,16 @@
+pipeline:
+  '--':
+    - $title: read configuration from "config" folder
+      ctx:
+        $:
+          files:
+            - ../config/<$- ctx.cli.environment $>/*.yml
+
+    - $title: read secrets from "vault" folder
+      secrets:
+        $:
+          files:
+            - ../vault/<$- ctx.cli.environment $>/decrypted/*.yml
+
+    - $title: rollback services
+      '@': services/

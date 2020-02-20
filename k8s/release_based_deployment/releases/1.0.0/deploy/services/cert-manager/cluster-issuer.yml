@@ -1,0 +1,19 @@
+pipeline:
+  kubectl.apply:
+    inline:
+      - apiVersion: cert-manager.io/v1alpha2
+        kind: ClusterIssuer
+        metadata:
+          name: letsencrypt-prod
+          namespace: $ref:ctx.namespace
+        spec:
+          acme:
+            server: https://acme-v02.api.letsencrypt.org/directory
+            email: $ref:ctx.cert-manager.email #reference config "cert-manager -> email" value
+            privateKeySecretRef:
+              name: letsencrypt-prod
+            solvers:
+              - selector: {}
+                http01:
+                  ingress:
+                    class: nginx

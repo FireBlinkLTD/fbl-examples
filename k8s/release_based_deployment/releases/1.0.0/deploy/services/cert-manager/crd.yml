@@ -1,0 +1,15 @@
+pipeline:
+  '--':
+    - $title: apply CRDs from remote URL
+      kubectl.apply:
+        extra:
+          - '--validate=false'
+        paths:
+          - https://raw.githubusercontent.com/jetstack/cert-manager/<%- ctx['cert-manager'].version %>/deploy/manifests/00-crds.yaml
+
+    - $title: wait for crds to apply
+      kubectl.wait:
+        resource: apiservice
+        name: v1beta1.webhook.cert-manager.io
+        for:
+          condition: Available

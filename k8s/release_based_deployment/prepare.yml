@@ -1,0 +1,35 @@
+pipeline:
+  '--':
+    <$ if (env.PASSWORD) { $>
+    - secrets:
+      $.password:
+        inline: $ref:env.PASSWORD
+    <$ } else { $>
+    - $title: prompt user for password
+      prompt:
+        message: 'Password:'
+        password: true
+        assignResponseTo: $.secrets.password
+    <$ } $>
+
+    <$ if (env.RELEASE) { $>
+    - ctx:
+      $.release:
+        inline: $ref:env.RELEASE
+    <$ } else { $>
+    - $title: prompt user for release name
+      prompt:
+        message: 'Release (e.g. 1.0.0):'
+        assignResponseTo: $.ctx.release
+    <$ } $>
+
+    <$ if (env.ENVIRONMENT) { $>
+    - ctx:
+      $.environment:
+        inline: $ref:env.ENVIRONMENT
+    <$ } else { $>
+    - $title: prompt user for environment name
+      prompt:
+        message: 'Environment (e.g. uat):'
+        assignResponseTo: $.ctx.environment
+    <$ } $>

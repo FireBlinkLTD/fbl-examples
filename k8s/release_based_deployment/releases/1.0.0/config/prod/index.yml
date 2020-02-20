@@ -1,0 +1,5 @@
+namespace: cert-manager
+
+cert-manager:
+  email: foo@bar.com
+  version: v0.13.1

@@ -1,0 +1,3 @@
+pipeline:
+  '--':
+    - echo: 'TODO: implement me'
