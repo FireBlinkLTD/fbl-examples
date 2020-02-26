@@ -1,0 +1,25 @@
+# Define virtual handler that prints current "path" into console in the following format:
+# {namespace} > {kind} > {name}
+# Ref: https://fbl.fireblink.com/plugins/flow#action-handler-virtual
+pipeline:
+  virtual:
+    id: printPath
+    action:
+      '--':
+        shareParameters: true
+        actions:
+          - fn: |
+              parameters.log = '';
+              if (ctx.namespace && ctx.namespace !== '@@back@@') {
+                parameters.log += ctx.namespace;
+              };
+
+              if (ctx.kind && ctx.kind !== '@@back@@') {
+                parameters.log += ' > ' + ctx.kind;
+              }
+
+              if (ctx.resource && ctx.resource !== '@@back@@') {
+                parameters.log += ' > ' + ctx.resource;
+              }
+
+          - echo: $ref:parameters.log

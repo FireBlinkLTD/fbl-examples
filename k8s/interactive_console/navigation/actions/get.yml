@@ -1,0 +1,18 @@
+pipeline:
+  '--':
+    - echo: ''
+    # Execute command directly
+    # Ref: https://fbl.fireblink.com/plugins/exec#action-handler-shell-command
+    - exec:
+        command: kubectl
+        args:
+          - '-n'
+          - $ref:ctx.namespace
+          - get
+          - $ref:ctx.kind
+          - $ref:ctx.resource
+          - '-o'
+          - yaml
+        options:
+          verbose: true
+    - echo: ''

@@ -1,22 +1,34 @@
+# A script to generate new release based on provided version name
 requires:
   fbl: '>=1.12.0 <2.0.0'
 
 pipeline:
+  # Run multiple actions in a sequence
+  # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-sequential-steps-execution
   '--':
+    # Prompt user to provide a version name
+    # Ref: https://fbl.fireblink.com/plugins/prompts#action-handler-prompt
     - $title: prompt user for a version
       prompt:
         message: 'Enter the release version name to create (e.g. 1.0.0):'
         assignResponseTo: $.ctx.versionName
 
+    # Create empty release director
+    # Ref: https://fbl.fireblink.com/plugins/fs#action-handler-create-directories
     - $title: make release folder
       mkdir: releases/<%- ctx.versionName %>
 
+    # Copy files and folders from template directory to release folder
+    # Ref: https://fbl.fireblink.com/plugins/fs#action-handler-copy-file-or-folder
     - $title: copy template to the release folder
       cp:
         from: template/
         to: releases/<%- ctx.versionName %>
 
+    # Create empty directories inside the vault for each environment
     - $title: create "decrypted" folder in each environment's vault folder
-      '--':
+      # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-parallel-steps-execution
+      '||':
+        # Ref: https://fbl.fireblink.com/plugins/fs#action-handler-create-directories
         - mkdir: releases/<%- ctx.versionName %>/vault/uat/decrypted
         - mkdir: releases/<%- ctx.versionName %>/vault/prod/decrypted

@@ -1,0 +1,26 @@
+pipeline:
+  '--':
+    shareParameters: true
+    actions:
+      # Confirm that user is actually wants to delete the resource
+      # Ref: https://fbl.fireblink.com/plugins/prompts#action-handler-confirm
+      - confirm:
+          message: 'Are you sure you want to delete <%- ctx.kind %> <%- ctx.resource %>?'
+          assignResponseTo: $.parameters.response
+
+      - '?':
+          value: $ref:parameters.response
+          is:
+            true:
+              '--':
+                - echo: 'Removing <%- ctx.kind %> <%- ctx.resource %> ...'
+                # Delete the resource
+                # Ref: https://github.com/FireBlinkLTD/fbl-plugins-k8s-kubectl/blob/master/docs/Delete.md
+                - kubectl.delete:
+                    resources:
+                      - $ref:ctx.kind
+                    names:
+                      - $ref:ctx.resource
+                    namespace: $ref:ctx.namespace
+                - echo: '<%- ctx.kind %> <%- ctx.resource %> successfully removed.'
+          else: void

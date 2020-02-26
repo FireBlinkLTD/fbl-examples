@@ -1,3 +1,5 @@
+# Rollback deployment
+
 requires:
   fbl: '>=1.12.0 <2.0.0'
   plugins:
@@ -5,29 +7,45 @@ requires:
     '@fbl-plugins/k8s-kubectl': '>=1.2.3'
 
 pipeline:
+  # Run multiple actions in a sequence
+  # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-sequential-steps-execution
   '--':
+    # Invoke nested flow to prepare before starting the rollback
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-attached-flow
     - '@': prepare.yml
 
+    # Get the "fbl-deployment" config map that hosts information about all previously deployed versions
+    # Ref: https://github.com/FireBlinkLTD/fbl-plugins-k8s-kubectl/blob/master/docs/GetOne.md
     - $title: get "fbl-deployment" ConfigMap
       kubectl.get.one:
         resource: ConfigMap
         name: fbl-deployment
         assignResourceTo: $.ctx.fbl.deployment
 
+    # Check if release was previously deployed
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-switch-flow
     - $title: check if release was previously fully or partially deployed
       if:
         value: <%- ctx.fbl.deployment.data[ctx.cli.release] === 'success' || ctx.fbl.deployment.data[ctx.cli.release] === 'failure'  %>
         is:
           false:
+            # Rise error
+            # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-error
             error: Release <%- ctx.cli.release %> was not previously deployed.
 
+    # Process the rollback flow inside the release folder
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-attached-flow
     - $title: run the release rollback scripts
       '@': releases/<%- ctx.cli.release %>/rollback
 
+    # Mark release as "reverted" inside the ConfigMap
+    # Ref: https://fbl.fireblink.com/plugins/exec#action-handler-function
     - $title: mark release as "reverted"
       fn: |-
         ctx.fbl.deployment.data[ctx.cli.release] = 'reverted';
 
+    # Update the "fbl-deployment" config map
+    # Ref: https://github.com/FireBlinkLTD/fbl-plugins-k8s-kubectl/blob/master/docs/Apply.md
     - $title: update "fbl-deployment" ConfigMap
       kubectl.apply:
         inline:

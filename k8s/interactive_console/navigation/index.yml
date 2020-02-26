@@ -1,0 +1,4 @@
+pipeline:
+  # Execute namespace selection flow defined in "./namespace.yml"
+  # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-attached-flow
+  '@': namespace.yml

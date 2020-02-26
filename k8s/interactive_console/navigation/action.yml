@@ -1,0 +1,20 @@
+pipeline:
+  # Call virtual action handler to pick one of the possible actions to do over resource.
+  # Virtual is defined in "../utils/selectWithAction.yml"
+  selectWithAction:
+    message: 'Select action:'
+    options:
+      - get
+      - describe
+      <$ if (ctx.kind === 'Pod') { $>
+      - logs
+      <$ } $>
+      - delete
+
+    assignTo: '$.ctx.action'
+    nextAction:
+      '--':
+        - '@': actions/
+        - '@': resource.yml
+    backAction:
+      '@': resource.yml

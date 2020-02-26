@@ -1,0 +1,72 @@
+pipeline:
+  # Define "virtual" action handler that finds all K8s resources and allows user to select one
+  # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-virtual
+  virtual:
+    id: findAllAndSelect
+    dynamicWorkDir: true
+
+    parametersSchema:
+      type: object
+      additionalProperties: false
+      required:
+        - resource
+        - assignTo
+        - message
+        - nextAction
+        - backAction
+      properties:
+        # Back option label text
+        backLabel:
+          type: string
+        # Resource kind to query
+        resource:
+          type: string
+        # Namespace to look in
+        namespace:
+          type: string
+        # Assign selected resource name to given path
+        assignTo:
+          type: string
+        # Define next action handler to invoke
+        nextAction:
+          type: object
+        # Define action handler for "back" option
+        backAction:
+          type: object
+        # Message to show for user to pick the option
+        message:
+          type: string
+
+    action:
+      # Execute actions in a sequence and share parameters.
+      # By default parameters are cloned for each action individually to sandbox parameters processing.
+      # However in some cases like this it is handy to mutate parameters in one action to be used in a following one.
+      # "shareParameters" flag allows to turn on that behavior.
+      '--':
+        shareParameters: true
+        actions:
+          # Because "namespace" parameter is optional we need to use "template" action handler to define the nested
+          # step definition.
+          # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-template
+          - tpl: |-
+              kubectl.get.all:
+                resources:
+                  - $ref:parameters.resource
+                <% if (parameters.namespace) { %>
+                namespace: $ref:parameters.namespace
+                <% } %>
+                assignResourcesTo: $.parameters.all
+
+          # Need to extract names only from the response, so we need simple JS script to handle that.
+          # Ref: https://fbl.fireblink.com/plugins/exec#action-handler-function
+          - fn: |-
+              parameters.all = parameters.all.map(r => r.metadata.name);
+
+          # Invoke "virtual" action handler defined in ./selectWithAction.yml
+          - selectWithAction:
+              backLabel: <%- parameters.backLabel || '[<] Back' %>
+              options: $ref:parameters.all
+              assignTo: $ref:parameters.assignTo
+              message: $ref:parameters.message
+              backAction: $ref:parameters.backAction
+              nextAction: $ref:parameters.nextAction

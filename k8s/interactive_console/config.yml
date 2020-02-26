@@ -1,0 +1,15 @@
+# List of K8s Resource Kinds to work with
+resources:
+  # default
+  - ConfigMap
+  - Secret
+  - PersistentVolumeClaim
+  - StorageClass
+  - NetworkPolicy
+  - Pod
+  - Deployment
+  - StatefulSet
+  # cert-manager
+  - Certificate
+  - CertificateRequest
+  - Order

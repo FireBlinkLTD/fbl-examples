@@ -34,6 +34,8 @@ This example is using following plugins:
 Simply invoke one of the following commands and answer the prompts.
 
 ```bash
+cd <fbl-examples/k8s/release_based_deployment>
+
 # run the deployment
 fbl deploy.yml
 

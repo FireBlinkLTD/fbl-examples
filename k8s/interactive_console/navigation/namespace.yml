@@ -1,0 +1,13 @@
+pipeline:
+  # Call virtual action handler to pick namespace.
+  # Virtual is defined in "../utils/findAllAndSelect.yml"
+  findAllAndSelect:
+    resource: Namespace
+    message: 'Select namespace:'
+    assignTo: '$.ctx.namespace'
+    backLabel: '[x] Exit'
+    nextAction:
+      '@': kind.yml
+    backAction:
+      echo: Bye!
+

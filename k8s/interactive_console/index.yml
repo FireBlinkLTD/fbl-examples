@@ -1,0 +1,25 @@
+# Define common requirements that current flow needs to run with
+requires:
+  fbl: '>=1.13.1 <2.0.0'
+  plugins:
+    '@fbl-plugins/k8s-kubectl': '>=1.2.4'
+
+# Pipeline entry point
+pipeline:
+  # Run multiple actions in a sequence
+  # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-sequential-steps-execution
+  '--':
+    # Read config.yml and assign it to context "config" field
+    # Ref: https://fbl.fireblink.com/plugins/context#action-handler-context-values-assignment
+    - ctx:
+        $.config:
+          files:
+            - config.yml
+
+    # Execute flow inside "utils" folder
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-attached-flow
+    - '@': utils/
+
+    # Execute flow inside "navigation" folder
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-attached-flow
+    - '@': navigation/

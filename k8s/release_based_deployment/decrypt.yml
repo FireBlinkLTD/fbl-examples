@@ -4,15 +4,24 @@ requires:
     '@fbl-plugins/crypto': '>=1.1.1'
 
 pipeline:
+  # Run multiple actions in a sequence
+  # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-sequential-steps-execution
   '--':
+    # Invoke nested flow to prepare before starting the rollback
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-attached-flow
     - '@': prepare.yml
 
+    # Try to remove decrypted folder inside release vault
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-try-catch-finally-flow
     - $title: try to delete "decrypted" folder first
       try:
         action:
-          '--':
-            - rm: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/decrypted/
+          # Remove folder
+          # Ref: https://fbl.fireblink.com/plugins/fs#action-handler-remove-file-or-folder
+          rm: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/decrypted/
 
+    # Find all files inside "encrypted" folder
+    # Ref: https://fbl.fireblink.com/plugins/fs#action-handler-find-files
     - $title: find all files in "encrypted" folder
       find:
         include:
@@ -21,11 +30,15 @@ pipeline:
           baseDir: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/encrypted
           assignTo: '$.ctx.files'
 
+    # Decrypt each of the files
+    # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-for-each
     - $title: decrypt each individually encrypted file
       each:
         of: $ref:ctx.files
         action:
           $title: decrypt "<%- iteration.value %>"
+          # Decrypt the file
+          # Ref: https://github.com/FireBlinkLTD/fbl-plugins-crypto/blob/master/docs/decrypt.md
           decrypt:
             password: $ref:secrets.password
             file: releases/<%- ctx.release %>/vault/<%- ctx.environment %>/encrypted/<%- iteration.value %>

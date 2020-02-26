@@ -1,0 +1,7 @@
+pipeline:
+  # Load all "virtual" action handlers in parallel from nested flows
+  # Ref: https://fbl.fireblink.com/plugins/flow#action-handler-parallel-steps-execution
+  '||':
+    - '@': selectWithAction.yml
+    - '@': findAllAndSelect.yml
+    - '@': printPath.yml

@@ -1,0 +1,11 @@
+pipeline:
+  # Call virtual action handler to pick one of the possible resource types to work with.
+  # Virtual is defined in "../utils/selectWithAction.yml"
+  selectWithAction:
+    options: $ref:ctx.config.resources
+    message: 'Select resource kind:'
+    assignTo: '$.ctx.kind'
+    nextAction:
+      '@': resource.yml
+    backAction:
+      '@': namespace.yml
